@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset= "utf-8"/>
+        <title>DashBoard</title>
+    </head>
+    <body>
+        <input type="date" name="date">
+        <h3 >
+            All User Count: <span class="total_user_count"></span>
+        </h3>
+        <div id = "user_behavior_funnel"></div>
+        <div id = "all_user_count"></div>
+        <input type="button">
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script>
+            const date = document.querySelector("input[name='date']")
+            let now = new Date();
+            let day = ('0' + now.getUTCDate()).slice(-2);
+            let month = ('0' + (now.getUTCMonth() + 1)).slice(-2);
+            let today = now.getUTCFullYear()+'-'+(month)+'-'+(day) ;
+            date.value = today 
+            let controller = new AbortController()
+            let signal = controller.signal
+            function drawUserBehaviorFunnel(behavior_count) {
+                let data = [{
+                    type: 'funnel',
+                    y: ["View", "View Item", "Add to Cart", "Checkout"],
+                    x: behavior_count,
+                }];
+                let layout = {margin: {l: 150}, width: 600, height: 500}
+                Plotly.newPlot('user_behavior_funnel', data, layout);
+            }
+                
+            function drawUserStatistic(user_count) {
+                let data = [
+                {
+                    x: ['active_user', 'new_user', 'return_user'],
+                    y: [user_count[0], user_count[1], user_count[2]],
+                    type: 'bar'
+                }
+                ];
+                Plotly.newPlot('all_user_count', data);
+            }
+            
+            function renderUpdateData(url){
+                fetch(url,{
+                    method: 'POST',
+                    signal:signal,
+                    headers:{
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',                        
+                    },
+                    body: JSON.stringify({"date":date.value})
+                })
+                .then(response =>{
+                    return response.json()
+                })
+                .then(json =>{
+                    user_statistic_data = json['user_statistic']
+                    user_behavior_funnel = json["user_behavior_funnel"]
+                    document.querySelector(".total_user_count").innerText = json["total_user_count"]
+                    drawUserStatistic(user_statistic_data)
+                    drawUserBehaviorFunnel(user_behavior_funnel)
+                    console.log("success update!")
+                })
+            }
+
+            renderUpdateData("/api/1.0/91data")
+            let interval = setInterval(()=>{renderUpdateData("/api/1.0/91data")},5000)
+            
+            date.addEventListener("change", ()=>{
+                clearInterval(interval);
+                controller.abort();
+                if (date.value === today ){
+                    controller = new AbortController()
+                    signal = controller.signal
+                    console.log(0)
+                    renderUpdateData("/api/1.0/91data")
+                    interval = setInterval(()=>{renderUpdateData("/api/1.0/91data")},5000)
+                }
+                else if (date.value != today){
+                    controller = new AbortController()
+                    signal = controller.signal
+                    console.log(1)
+                    renderUpdateData("/api/1.0/91data")
+                    
+                }
+            })
+        </script>
+    </body>
+</html>

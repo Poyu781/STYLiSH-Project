@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dashboard</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
+        <link rel="stylesheet" type="text/css" href="../styles/dashboard.css" media="all" />
+    </head>
+    <body>
+        <div id="count" class="info_block">
+            <div id="number">3423423</div>
+        </div>
+        <div id="pie" class="info_block"></div>
+        <div id="histogram" class="info_block"></div>
+        <div id="bar" class="info_block"></div>
+    </body>
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // let totalRevenue ;
+        // let productsDivideByColor;
+        // let productsInPriceRange;
+        // let top5ProductsDividedBySize;
+        document.addEventListener("DOMContentLoaded", function(event) { 
+
+            var socket = io();   
+            socket.on('connect', function() {
+                console.log("connect success")
+                socket.send('dashboard connected!');
+            });
+
+            socket.on('send_data', function(msg) {
+                console.log('Received message');
+                // console.log(msg)
+                let object = JSON.parse(msg)
+                function main() {
+                    dashboard = new Dashboard({"totalRevenue":object["total_revenue"],"productsDivideByColor":object['products_divided_by_color'],"productsInPriceRange":object['products_count_by_price'],"top5ProductsDividedBySize":object["products_count_by_size"]});
+                    dashboard.onlineUserCount();
+                    dashboard.drawProductsDivideByColor();
+                    dashboard.drawProductsInPriceRange();
+                    dashboard.drawTop5ProductsDividedBySize();
+            }
+                main();
+            });
+
+        })
+        fetch("/api/1.0/midterm_data")
+        .then((response) => {
+            return response.json();
+        })
+        .then((object) => {
+            // console.log(object)
+            function main() {
+                dashboard = new Dashboard({"totalRevenue":object["total_revenue"],"productsDivideByColor":object['products_divided_by_color'],"productsInPriceRange":object['products_count_by_price'],"top5ProductsDividedBySize":object["products_count_by_size"]});
+                dashboard.onlineUserCount();
+                dashboard.drawProductsDivideByColor();
+                dashboard.drawProductsInPriceRange();
+                dashboard.drawTop5ProductsDividedBySize();
+        }
+            main();
+        })
+        
+    </script>
+</html>

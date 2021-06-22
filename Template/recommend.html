@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            h1{ 
+                color: rgb(232, 119, 111);
+            }
+        </style>
+        <title>Recommend List</title>
+    </head>
+
+    <body >
+        <form>
+            <select name="chooseProduct" id="chooseProduct">
+            </select>
+        </form>
+
+        <section class="productSection"></section>
+    </body>
+    <script type="text/javascript" >
+        const list_node = document.querySelector("#chooseProduct")
+        const productSection = document.querySelector(".productSection")
+        fetch('/api/1.0/amazon_similarity')
+            .then(response=>{
+                return response.json()
+            })
+            .then(json=>{          
+                let chooseItemsObject = json["data"]
+                for (let title of Object.keys(chooseItemsObject)){
+                    let node = document.createElement("option");
+                    node.setAttribute("value",chooseItemsObject[title])
+                    node.innerText = title
+                    list_node.appendChild(node)
+                }
+            })
+            .catch(function(error) {
+                console.log(error);
+                alert(error)
+            })
+
+        addEventListener("change",()=>{
+            let searchProduct = document.querySelector("select").value
+            productSection.innerHTML = '';
+            fetch(`/api/1.0/amazon_similarity?item=${searchProduct}`)
+                .then(response => {
+                    return response.json()
+                })
+                .then(json => { 
+                    let productsArray = json['data']
+                    for ( let itemObject of productsArray){
+                        if(productsArray.indexOf(itemObject) === 0){
+                            let node_title = document.createElement("h1");
+                            let node_price = document.createElement("h2");
+                            let node_img = document.createElement("img");
+                            node_title.innerText = `CHOOSE PRODUCT :${itemObject['title']}`
+                            node_price.innerText = itemObject['price']
+                            node_img.setAttribute("src",itemObject['img'])
+                            productSection.appendChild(node_title)
+                            productSection.appendChild(node_price)
+                            productSection.appendChild(node_img)                            
+                        }
+                        else{
+                        let node_title = document.createElement("h2");
+                        let node_price = document.createElement("h3");
+                        let node_img = document.createElement("img");
+                        node_title.innerText = itemObject['title']
+                        node_price.innerText = itemObject['price']
+                        node_img.setAttribute("src",itemObject['img'])
+                        productSection.appendChild(node_title)
+                        productSection.appendChild(node_price)
+                        productSection.appendChild(node_img)
+                        }
+                    }
+                })
+                .catch(function(error) {
+                    console.log(error);
+                    alert(error)
+                })
+        })
+    </script>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset= "utf-8"/>
+        <title>Product Management Tool</title>
+        <style>
+            .block {
+                display: flex;
+                justify-content: start;
+                align-items: center;
+                height: 50px;
+            }
+
+            .block h3 {
+                display: flex;
+                justify-content: center;
+                width: 140px;
+            }
+
+            .block input {
+                margin-left: 10px;
+            }
+            select{
+                margin-left: 10px;
+                height: 30px;
+            }
+            input{
+                width: 500px;
+                height: 25px;
+            }
+            input[name="images"]{
+                width: 150px;
+            }
+            input[name="submit"]{
+                width: 150px;
+            }
+        </style>
+    </head>
+    <body>
+        <form method="POST" class="productData" >
+            <div class="block">
+                <h3>Title:</h3>
+                <input name="title" type="text"  >    
+            </div>
+            <div class="block">
+                <h3>Category:</h3>
+                    <select class="select" >
+                        <option></option>
+                        <option>women</option>
+                        <option>men</option>
+                        <option>accessories</option>
+                    </select>
+            </div>
+            <div class="block">
+                <h3>Description:</h3>
+                <input name="description" type="text"  >
+            </div>
+            <div class="block">
+                <h3>Price:</h3>
+                <input name="price" type="number"  >
+            </div>
+            <div class="block">
+                <h3>Texture:</h3>
+                <input name="texture" type="text"  >
+            </div>
+            <div class="block">
+                <h3>Wash:</h3>
+                <input name="wash" type="text"  >
+            </div>
+            <div class="block">
+                <h3>Place:</h3>
+                <input name="place" type="text"  >
+            </div>
+            <div class="block">
+                <h3>Note:</h3>
+                <input name="note" type="text"  >
+            </div>
+            <div class="block">
+                <h3>Story:</h3>
+                <input name="story" type="text"  >
+            </div>
+
+            <div class="block" >
+                <input type='color' name='color_code_1' class='color_code' placeholder="colors">
+                <input type='text' name='color_name_1' class='color_name' placeholder="color_name">
+                <h4>S</h4>
+                <input type='number' name='sizes_s_1' class='variant_sizes_s' value=0  >            
+                <h4>M</h4>
+                <input type='number' name='sizes_m_1' class='variant_sizes_m' value=0  >   
+                <h4>L</h4>
+                <input type='number' name='sizes_l_1' class='variant_sizes_l' value=0  >
+            </div>
+            <div class="block" >
+                <input type='color' name='color_code_2' class='color_code' placeholder="colors">
+                <input type='text' name='color_name_2' class='color_name' placeholder="color_name">
+                <h4>S</h4>
+                <input type='number' name='sizes_s_2' class='variant_sizes_s' value=0  >            
+                <h4>M</h4>
+                <input type='number' name='sizes_m_2' class='variant_sizes_m' value=0  >   
+                <h4>L</h4>
+                <input type='number' name='sizes_l_2' class='variant_sizes_l' value=0  >
+            </div>            
+            <div class="block" >
+                <input type='color' name='color_code_3' class='color_code' placeholder="colors">
+                <input type='text' name='color_name_3' class='color_name' placeholder="color_name">
+                <h4>S</h4>
+                <input type='number' name='sizes_s_3' class='variant_sizes_s' value=0  >            
+                <h4>M</h4>
+                <input type='number' name='sizes_m_3' class='variant_sizes_m' value=0  >   
+                <h4>L</h4>
+                <input type='number' name='sizes_l_3' class='variant_sizes_l' value=0  >
+            </div>
+
+            <div class="block">
+                <h3>Main_image:</h3>
+                <input name="mainImage" type="file" >
+            </div>
+            <div class="block">
+                <h3>Images:</h3>
+                <input name="images" type="file">
+                <input name="images" type="file">
+                <input name="images" type="file">
+                <input name="images" type="file">
+            </div>
+            <div class="block">
+                <p>
+                    <input type="submit" name="submit" value="submit">
+                </p>
+                <p>
+                    <input type='reset' name="reset" value="Clear Form">
+                </p>
+            </div>
+            <h3 class= "responseMessage"></h3>
+        </form>
+        <script src="../js/product.js"></script>
+    </body>
+</html>

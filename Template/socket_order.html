@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chat Room</title>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+$(document).ready(function() {
+
+	var socket = io()
+
+	socket.on('connect', function() {
+        console.log('Connect Success');
+		socket.send('order page connect');
+	});
+
+	// socket.on('message', function(msg) {
+	// 	console.log('Received message');
+	// });
+    let click = document.querySelector("#sendbutton")
+    click.addEventListener("click",(e)=>{
+        let id = $('#product_id').val();
+        let size = $('#size').val();
+        let qty = $('#qty').val();
+        let r = [id,size,qty]
+        console.log(r)
+        socket.emit("send_data",JSON.stringify({"data":r}))
+        document.querySelector("#msg").innerHTML = "success"
+    })
+
+});
+</script>
+<ul id="messages"></ul>
+<div id="msg"></div>
+<div>product_id<input  type="text" id="product_id"></div>
+<div>size(only accepted S or M or L )<input  type="text" id="size"></div>
+<div>qty<input  type="text" id="qty"></div>
+<button id="sendbutton">Send</button>
+<div id="log"></div>
+</body>
+</html>
