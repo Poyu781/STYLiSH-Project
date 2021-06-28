@@ -152,9 +152,7 @@ def upload_image():
             if i == 0:
                 img_dict_stored['main_image'] = s3_url + filename
             else :
-                img_dict_stored['images'].append(s3_url + filename)
-                print(s3_url + filename)  
-                print(type(s3_url + filename))              
+                img_dict_stored['images'].append(s3_url + filename)         
         else :
             return {"message": "Upload Image Failed , Please check the file are .img , .png , .jpg or .gif format"}
     return img_dict_stored
@@ -178,16 +176,13 @@ def store_data():
                     get_data['place'], get_data['note'], get_data['story'],
                     get_data['images']['main_image'],
                     str(get_data['images']['images']))
-        print("1 su")
+
         product_id = stylist_db.fetch_dict("select id from product where title = %s", get_data['title'],fetch_method="one")["id"]
-        print(product_id)
         for i in range(0,3):
-            print(f"loop{i}")
             stylist_db.execute(sql_insert_color, get_data['variants'][i]['color_name'], get_data['variants'][i]['color_code'][1:], int(product_id))
             sizes = ["s", "m", "l"]
             for size in sizes:
                 stylist_db.execute(sql_insert_stock, get_data['variants'][i]['color_code'][1:], size.upper() ,int(get_data['variants'][i][f'sizes_{size}']), int(product_id))
-                print(f"success{i}")
         return {"message": "Successful update"}
     except:
         return {"message": "Failed"}

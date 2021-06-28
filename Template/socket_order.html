@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Chat Room</title>
+<title>Update Data</title>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 </head>
@@ -27,7 +27,7 @@ $(document).ready(function() {
         let r = [id,size,qty]
         console.log(r)
         socket.emit("send_data",JSON.stringify({"data":r}))
-        document.querySelector("#msg").innerHTML = "success"
+        document.querySelector("#msg").innerHTML = '<a href="/admin/dashboard.html">成功上傳，點擊此查看是否成功更新圖表</a>'
     })
 
 });

@@ -1,0 +1,14 @@
+body{
+    background-color: whitesmoke;
+}
+section{
+    margin: 0px auto;
+}
+
+h2{
+    color: darkcyan;
+}
+
+a{
+    font-size: 16px;
+}

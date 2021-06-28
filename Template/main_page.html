@@ -1,13 +1,34 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset= "utf-8"/>
-        <title>Product Management Tool</title>
-    </head>
-    <body>
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/styles/home_page.css" />
+    <title>Product Management Tool</title>
+</head>
+
+<body>
+    <section>
         <h1>Welcome !</h1>
-        <a href="/dashboard">DashBoard</a>
-        <div></div>
-        <a href="/recommend_list">Recommend Page</a>
-    </body>
+        <ul>
+            <li>
+                <h2>User Behavior Funnel : <a href="/dashboard">連結</a><br>
+                    <h3>即時更新的數據圖表，可以讓營運人員了解消費者在平台上各階段的存留狀態(06/26 後才有數據，時間採 UTC+0） </h3>
+                </h2>
+            </li>
+            <li>
+                <h2>Amazon Product Recommendation System : <a href="/recommend_list">連結</a><br>
+                    <h3>透過 Item-Based Collaborative Filtering 建置的商品推薦系統</h3>
+                </h2>
+            </li>
+            <li>
+                <h2>Product Sales dashboard : <a href="/admin/dashboard.html">連結</a><br>
+                    <h3>數據資料視覺化應用，可以透過此<a href="/socket.test">連結</a>上傳最新數據，將透過 socket 即時更新</h3>
+                </h2>
+            </li>
+        </ul>
+        
+    </section>
+</body>
+
 </html>

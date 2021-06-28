@@ -32,7 +32,7 @@ def create_url(cid):
         event_urlvalue = f"evtn={event_type}&"
         require_url = 'https://fake.data/v1/?' + cid + event_urlvalue
 
-    elif random_num <= 0.47:
+    elif random_num <= 0.40:
         event_type = "checkout_progress"
         event_urlvalue = f"evtn={event_type}&"
         step = random.choice([1, 2, 3])
@@ -69,12 +69,11 @@ def insert_Mongo():
         insert_dict = {}
         try:
             url = create_url(cid)
-            print(url)
             insert_dict["request_url"] = url
             insert_dict["created_at"] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
             insert_list.append(insert_dict)
-        except:
-            print(1)
+        except Exception as e:
+            print(e)
     else:
         url = 'https://fake.data/v1/?' + cid + "evtn=hover&"
         insert_dict["request_url"] = url
@@ -85,5 +84,5 @@ def insert_Mongo():
 
 while True:
     insert_Mongo()
-    print("s")
-    time.sleep(random.uniform(1, 3) * random.uniform(1, 2))
+
+    time.sleep(random.uniform(1, 4) * random.uniform(1, 2))

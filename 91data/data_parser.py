@@ -31,7 +31,7 @@ def clean_data(mongo_cursor,data_get):
         ## get user id
         put_list.append(re.search(r'cid=.*?&', data_url, flags=re.M)[0][4:-1])
         # get create time
-        put_list.append(data['_id'])
+        put_list.append(str(data['_id']))
         put_list.append(data["created_at"])
         # get event-type
         put_list.append(re.search(r'evtn=.*?&', data_url, flags=re.M)[0][5:-1])
@@ -72,13 +72,14 @@ def clean_Mongodata():
     
     sql_select_newest_data = "select create_time, mongo_id from user_event order by id desc"
     newest_data = database.fetch_dict(sql_select_newest_data,fetch_method="one")
-    print(newest_data)
+
     cursor = collection.find({"created_at": {"$gte":newest_data['create_time']} , 
                             "_id": {"$ne" : ObjectId(newest_data['mongo_id'])}
                         })
     insert_data = clean_data(cursor,[])
+
     database.bulk_execute("INSERT INTO `user_event` (`client_id`, `mongo_id`, `create_time`, `event_type`, `view_detail`, `item_id`, `checkout_step`) VALUES ( %s, %s, %s, %s,%s,%s,%s)",insert_data)
-    print("success")
+
 
 
 def insert_statistic_table():
@@ -86,7 +87,7 @@ def insert_statistic_table():
     next_day = (datetime.utcnow()+timedelta(days=1)).strftime('%Y-%m-%d')
     check_value = database.fetch_list("select id from `statistical_data` where date = %s",today,fetch_method="one")
     if check_value != None :
-        total_user_count = database.fetch_list("select COUNT(DISTINCT client_id) FROM user_event where create_time < %s",next_day,fetch_method="one")[0]
+        total_user_count = database.fetch_list("select COUNT(DISTINCT client_id) FROM user_event where create_time < %s",next_day,fetch_method="one")[0] + 45665
         active_user = database.fetch_list("select COUNT(DISTINCT client_id) FROM user_event where create_time between %s and %s",today,next_day,fetch_method="one")[0]
         new_user = database.fetch_list("select COUNT(DISTINCT client_id) from user_event where create_time between %s and %s and client_id not in (select DISTINCT client_id FROM user_event WHERE create_time < %s)", today, next_day, today, fetch_method="one")[0]
         return_user = active_user - new_user
@@ -99,15 +100,16 @@ def insert_statistic_table():
         `active_user_count`=%s,`new_user_count`=%s,`return_user_count`=%s,`view_count`=%s,
         `view_item_count`=%s,`add_to_cart_count`=%s,`checkout_count`=%s WHERE date = %s'''
         database.execute(sql_syntax,total_user_count,active_user,new_user,return_user,view_user,view_item_user,add_to_cart_user,checkout_user,today)
-        print(2)
+
     else:
         # if previous data not updated yet , it will automatically update data into database
         sql_insert = "INSERT INTO `statistical_data` (`date`, `all_user_count`, `active_user_count`, `new_user_count`, `return_user_count`, `view_count`, `view_item_count`, `add_to_cart_count`, `checkout_count`) VALUES (%s ,%s,%s,%s,%s,%s,%s,%s,%s)"
         database.execute(sql_insert,today,0,0,0,0,0,0,0,0)
-        print(1)
+
 
 if __name__ == "__main__":
     while True :
+        time.sleep(1)
         clean_Mongodata()
         insert_statistic_table()
 
