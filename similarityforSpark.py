@@ -139,107 +139,68 @@ with open("/Users/poyuchiu/Desktop/result.csv","w") as infp:
         # print(i)
         infp.writelines(",".join(i)+'\n')
 
-# from fake_useragent import UserAgent
-# ua = UserAgent(verify_ssl=False)
-# failure_item_list = []
-# crawler_result = []
-# def crawler_amazon(item_code):
-#     url = f'https://www.amazon.com/dp/{item_code}'
-#     headers = {
-#             'user-agent': ua.random,
-#             'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
-#             }    
-#     response = requests.get(url,headers = headers)
-#     soup = BeautifulSoup(response.content, 'html.parser')
-#     fetch_list =[]
-#     try:
-#         title = soup.find("span",id="productTitle").text.replace("\n",'')
-#         img_soup  = soup.find("div",id="imgTagWrapperId").img['data-a-dynamic-image']
-#         images_list = list(json.loads(img_soup).keys())
-#         image_url = images_list[0]
-#         # if you need the image's base64
-#         image_base64 = base64.b64encode(requests.get(image_url).content)
-#         price = ""
-#         try:
-#             sale_price = soup.find("span",id= "priceblock_dealprice").text
-#             price = sale_price
-#         except :
-#             try:
-#                 origin_price = soup.find("span",id="priceblock_ourprice").text
-#                 price = origin_price
-#             except:
-#                 price = "don't have price"
+#############Spark
 
-#         # set what's value need to insert
-#         fetch_list.extend([item_code, title, image_url, price])
-#         print(fetch_list)
-#         crawler_result.append(fetch_list) 
-#     except :
-#         failure_item_list.append(item_code)
-#         print("\n","Can't find this page", url)
+from pyspark.sql import SparkSession
+import time
+start = time.time()
+print(2)
+spark = SparkSession \
+    .builder \
+    .appName("qiuboyude-MacBook-Pro.local") \
+    .master("local[4]") \
+    .getOrCreate()
+print(1)
 
+df = spark.read.csv("/Users/poyuchiu/Desktop/Clothing_Shoes_and_Jewelry_sample.csv",header=True).rdd
+result = df.map(lambda x: (x["reviewerID"],(x["itemID"],x["rating"])))
+groupby_user = result.groupByKey()
 
-# def thread_crawler(item_list):
-#     threads =[]
-#     start_time = time.time()
-#     for i in range(len(item_list)):
-#         # print(i,'\n',url)
-#         threads.append(threading.Thread(target = crawler_amazon, args = (item_list[i],)))
-#         time.sleep(1)
-#         threads[i].start()
-#     for i in range(len(item_list)):
-#         # print(threads[i])
-#         threads[i].join()
-#     print(time.time() - start_time)
-#     return crawler_result,failure_item_list
+from statistics import mean, pstdev
+def normalization(arr):
+    rating_list = []
+    return_list = []
+    for item_tuple in arr[1]:
+        rating_list.append(float(item_tuple[1]))
+    mean_value = mean(rating_list)
+    standard_dv = pstdev(rating_list)
+    if standard_dv == 0:
+        return (return_list,)
+    for item_tuple in arr[1]:
+        rate = round((float(item_tuple[1]) - mean_value) / standard_dv,3)
+        append_tuple = (item_tuple[0],rate)
+        return_list.append(append_tuple)
+        
+    return (return_list)
+nor = groupby_user.map(normalization).filter(lambda x:len(x[0])>1)
 
-
-
-
-# def get_menu_list():
-#     sql_output = amazon.fetch_list("""
-#     select list.item_1 FROM (SELECT item_1,count(item_1) as num 
-#     FROM `item_similarity` where  cosine_similarity >0.75 group by item_1) 
-#     as list where list.num >= 3 """) # choose item cosine_similarity higher than 0.75 and match product more than three
-#     menu_items = [i[0] for i in sql_output]
-
-#     result,failure_item_list = thread_crawler(menu_items)
-#     print(result)
-#     amazon.bulk_execute("insert into amazon_product (item_code, title, img, price,tag) values(%s,%s,%s,%s,\'menu\') ",result)
-#     # delete the item can not find on Amazon
-#     for i in failure_item_list :
-#         menu_items.remove(i)
-#     return menu_items
-
-
-# def get_similarity_items(menu_items):
-#     similarity_items = []
-#     for itemID in menu_items :
-#         sql_output = amazon.fetch_list("select item_2 from item_similarity where item_1 = %s",itemID)
-#         item_list = [i[0] for i in sql_output]
-#         similarity_items.extend(item_list)
-
-#     similarity_items = list(set(similarity_items))
-
-#     result,failure_item_list = thread_crawler(similarity_items)
-#     amazon.bulk_execute("insert IGNORE into amazon_product (item_code, title, img, price) values(%s,%s,%s,%s) ",result)
-#     # choose_items_dict = {}
-#     # for itemID in choose_items:
-#     #     title = amazon.fetch_list("select title from amazon_product where item_code = %s",itemID)[0][0]
-#     #     choose_items_dict[title] = itemID
-
-
-
-# t1 = time.time()
-# deal_with_similarity()
-# print("total",time.time()-t1)
-
-# t1 = time.time()
-# menu_items = get_menu_list()
-# print("down")
-# t2 = time.time()
-
-# get_similarity_items(menu_items)
-# t3 = time.time()
-
-# print(t2-t1,t3-t2)
+def combination(arr):
+    item_pair_list = []
+    for i in arr :
+        for p in arr:
+            if i != p :
+                item_pair = (i[0],p[0])
+                rating_pair = (i[1],p[1])
+                item_pair_list.append((item_pair,rating_pair))
+    return item_pair_list
+combine = nor.flatMap(combination)
+groupby_combine = combine.groupByKey().filter(lambda x : len(x[1])>1)
+def cosine_similarity(vec_a,vec_b):
+    dot = sum(a*b for a, b in zip(vec_a, vec_b))
+    norm_a = sum(a*a for a in vec_a) ** 0.5
+    norm_b = sum(b*b for b in vec_b) ** 0.5
+    if (norm_a*norm_b) == 0:
+        return "null"
+    cos_sim = dot / (norm_a*norm_b)
+    return cos_sim
+def run(arr):
+    vec_a =[]
+    vec_b = []
+    for i in arr[1]:
+        vec_a.append(i[0])
+        vec_b.append(i[1])
+    cos_sim = cosine_similarity(vec_a,vec_b)
+    return arr[0],cos_sim
+last = groupby_combine.map(run)
+print(last.count())
+print(time.time()-start)
