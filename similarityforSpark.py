@@ -1,3 +1,74 @@
+#############Spark
+from pyspark.sql import SparkSession
+import time
+start = time.time()
+print(2)
+spark = SparkSession \
+    .builder \
+    .appName("qiuboyude-MacBook-Pro.local") \
+    .master("local[4]") \
+    .getOrCreate()
+print(1)
+
+df = spark.read.csv("/Users/poyuchiu/Desktop/Clothing_Shoes_and_Jewelry_sample.csv",header=True).rdd
+result = df.map(lambda x: (x["reviewerID"],(x["itemID"],x["rating"])))
+groupby_user = result.groupByKey()
+
+from statistics import mean, pstdev
+def normalization(arr):
+    rating_list = []
+    return_list = []
+    for item_tuple in arr[1]:
+        rating_list.append(float(item_tuple[1]))
+    mean_value = mean(rating_list)
+    standard_dv = pstdev(rating_list)
+    if standard_dv == 0:
+        return (return_list,)
+    for item_tuple in arr[1]:
+        rate = round((float(item_tuple[1]) - mean_value) / standard_dv,3)
+        append_tuple = (item_tuple[0],rate)
+        return_list.append(append_tuple)
+        
+    return (return_list)
+nor = groupby_user.map(normalization).filter(lambda x:len(x[0])>1)
+
+def combination(arr):
+    item_pair_list = []
+    for i in arr :
+        for p in arr:
+            if i != p :
+                item_pair = (i[0],p[0])
+                rating_pair = (i[1],p[1])
+                item_pair_list.append((item_pair,rating_pair))
+    return item_pair_list
+combine = nor.flatMap(combination)
+groupby_combine = combine.groupByKey().filter(lambda x : len(x[1])>1)
+def cosine_similarity(vec_a,vec_b):
+    dot = sum(a*b for a, b in zip(vec_a, vec_b))
+    norm_a = sum(a*a for a in vec_a) ** 0.5
+    norm_b = sum(b*b for b in vec_b) ** 0.5
+    if (norm_a*norm_b) == 0:
+        return "null"
+    cos_sim = dot / (norm_a*norm_b)
+    return cos_sim
+def run(arr):
+    vec_a =[]
+    vec_b = []
+    for i in arr[1]:
+        vec_a.append(i[0])
+        vec_b.append(i[1])
+    cos_sim = cosine_similarity(vec_a,vec_b)
+    return arr[0],cos_sim
+last = groupby_combine.map(run)
+print(last.count())
+print(time.time()-start)
+
+
+
+
+
+
+# Original way
 import time,base64,threading,requests,json
 from app import s3,s3_bucket_name,rds_host,rds_password,rds_user
 from bs4 import BeautifulSoup
@@ -139,68 +210,3 @@ with open("/Users/poyuchiu/Desktop/result.csv","w") as infp:
         # print(i)
         infp.writelines(",".join(i)+'\n')
 
-#############Spark
-
-from pyspark.sql import SparkSession
-import time
-start = time.time()
-print(2)
-spark = SparkSession \
-    .builder \
-    .appName("qiuboyude-MacBook-Pro.local") \
-    .master("local[4]") \
-    .getOrCreate()
-print(1)
-
-df = spark.read.csv("/Users/poyuchiu/Desktop/Clothing_Shoes_and_Jewelry_sample.csv",header=True).rdd
-result = df.map(lambda x: (x["reviewerID"],(x["itemID"],x["rating"])))
-groupby_user = result.groupByKey()
-
-from statistics import mean, pstdev
-def normalization(arr):
-    rating_list = []
-    return_list = []
-    for item_tuple in arr[1]:
-        rating_list.append(float(item_tuple[1]))
-    mean_value = mean(rating_list)
-    standard_dv = pstdev(rating_list)
-    if standard_dv == 0:
-        return (return_list,)
-    for item_tuple in arr[1]:
-        rate = round((float(item_tuple[1]) - mean_value) / standard_dv,3)
-        append_tuple = (item_tuple[0],rate)
-        return_list.append(append_tuple)
-        
-    return (return_list)
-nor = groupby_user.map(normalization).filter(lambda x:len(x[0])>1)
-
-def combination(arr):
-    item_pair_list = []
-    for i in arr :
-        for p in arr:
-            if i != p :
-                item_pair = (i[0],p[0])
-                rating_pair = (i[1],p[1])
-                item_pair_list.append((item_pair,rating_pair))
-    return item_pair_list
-combine = nor.flatMap(combination)
-groupby_combine = combine.groupByKey().filter(lambda x : len(x[1])>1)
-def cosine_similarity(vec_a,vec_b):
-    dot = sum(a*b for a, b in zip(vec_a, vec_b))
-    norm_a = sum(a*a for a in vec_a) ** 0.5
-    norm_b = sum(b*b for b in vec_b) ** 0.5
-    if (norm_a*norm_b) == 0:
-        return "null"
-    cos_sim = dot / (norm_a*norm_b)
-    return cos_sim
-def run(arr):
-    vec_a =[]
-    vec_b = []
-    for i in arr[1]:
-        vec_a.append(i[0])
-        vec_b.append(i[1])
-    cos_sim = cosine_similarity(vec_a,vec_b)
-    return arr[0],cos_sim
-last = groupby_combine.map(run)
-print(last.count())
-print(time.time()-start)
